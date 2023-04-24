@@ -43,12 +43,15 @@ python ${barcodepath}/UU_correct_1124.py $barcodepath $tmpdir/H3.bam $tmpdir/fil
 java -Xmx100g -jar /share/home/hanxiaoping/tools/Drop-seq_tools-2.5.1/3rdParty/picard/picard.jar\
  SamToFastq INPUT=$tmpdir/filtered.bam FASTQ=$tmpdir/R2.fastq  READ1_TRIM=17
 
+
+/share/home/hanxiaoping/tools/seqtk/seqtk seq -Ar $tmpdir/R2.fastq > $tmpdir/R2_reverse.fastq && rm $tmpdir/R2.fastq
+
 # # ## PolyATrimmer
 
-cutadapt -a A{10} -j 0 -O 10 --minimum-length=20 -o $tmpdir/R2_trim.fastq \
-$tmpdir/R2.fastq && rm $tmpdir/R2.fastq
+cutadapt -a A{10} -j 0 -O 10 --minimum-length=20 -o $tmpdir/R2_polyA_trim_reverse.fastq \
+$tmpdir/R2_reverse.fastq && rm $tmpdir/R2_reverse.fastq
 
-/share/home/hanxiaoping/tools/seqtk/seqtk seq -Ar tmp/R2_trim.fastq > tmp/R2_polyA_trim_reverse.fastq && rm tmp/R2_trim.fastq
+
 ## Alignment STAR
 /share/home/hanxiaoping/tools/STAR-2.5.2a/source/STAR \
 --genomeDir /share/home/hanxiaoping/tools/STAR_Reference_Mouse/genomeDir/ \
