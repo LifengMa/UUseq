@@ -69,19 +69,7 @@ for(i in 1:length(dir)){
 p2[[1]]+p2[[2]]+p2[[3]]+p2[[4]]+p2[[5]]+p2[[6]]+plot_layout(guides="collect")
 ggsave('/media/ggj/ggj/CJY/ob/basic_analysis/cytotrace_SLICE/cytotrace_2.pdf',width = 12,height = 8)
 
-# cytotrace_pheno <- read.csv('./intestine_cytotrace.csv',stringsAsFactors = F,row.names = 1)
-# cytotrace_pheno <- cbind(pheno[,1:3],cytotrace_pheno[rownames(pheno),])
-# 
-# cytotrace_pheno$pheno <- factor(cytotrace_pheno$pheno,levels = as.character(zz$pheno))
-p1 <- ggplot(cytotrace_pheno, aes(x=pheno, y=gcs,fill=pheno)) +
-  geom_boxplot(color="black", notch = F) +theme(axis.text.x = element_text(angle = 90))
-p1
 
-p1 <- ggplot(cytotrace_pheno, aes(x=pheno, y=cytotrace,fill=pheno)) +
-  geom_boxplot(color="black", notch = F) +theme(axis.text.x = element_text(angle = 90))
-p1
-
-save(p,p2,file = '../basic_analysis/cytotrace_SLICE/plot.RData')
 ###################################################### SLICE
 #cpm <- apply(datause1,2, function(x) (x/sum(x))*10000) 
 cpm<-as.data.frame(logcpm)
@@ -132,35 +120,3 @@ cor(cytotrace_pheno$order,cytotrace_pheno$cytotrace,method = "spearman")
 cor(logcpm_pheno$order,logcpm_pheno$PSI,method = "spearman")
 save(magiccpm_pheno,slice_pheno,cytotrace_pheno,logcpm_pheno,file = "intestine_pheon.RData")
 
-
-
-library(CytoTRACE)
-setwd("/media/ggj/YF2/Qile/frog/")
-library(Seurat)
-library(reshape2)
-pbmc <- readRDS("./allstage.pbmc.RDS")
-
-### cytotrace
-
-Idents(pbmc)<-pbmc$orig.ident
-st48<-subset(pbmc,idents = "St48")
-datause_st48<-st48@assays$RNA@counts
-result <- CytoTRACE(datause_st48,ncores = 10,subsamplesize=10000)
-save(result,file="cytotrace_entropy_St48.RData")
-
-st54<-subset(pbmc,idents = "St54")
-datause_st54<-st54@assays$RNA@counts
-result <- CytoTRACE(datause_st54,ncores = 10)
-save(result,file="cytotrace_entropy_St54.RData")
-
-
-st59<-subset(pbmc,idents = "St59")
-datause_st59<-st59@assays$RNA@counts
-result <- CytoTRACE(datause_st59,ncores = 10)
-save(result,file="cytotrace_entropy_St59.RData")
-
-
-st66<-subset(pbmc,idents = "St66")
-datause_st66<-st66@assays$RNA@counts
-result <- CytoTRACE(datause_st66,ncores = 10)
-save(result,file="cytotrace_entropy_St66.RData")
