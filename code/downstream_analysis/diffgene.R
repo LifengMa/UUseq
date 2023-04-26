@@ -1,91 +1,3 @@
-setwd('/media/ggj/ggj/CJY/ob/tissue_all')
-library(Seurat)
-library(ggplot2)
-library(reshape2)
-library(openxlsx)
-library(ggrepel)
-dir=list.dirs('.',recursive = F)
-dir=dir[c(2,4,6:9)]
-dir
-clusternum=unique(pbmc$seurat_clusters)
-
-anno <- read.xlsx("./adrenal_gland/adrenal_gland_anno.xlsx",sheet=1)
-anno <- anno[,c(7,10)]
-anno <- na.omit(anno)
-new.cluster.ids<-anno$celltype
-Idents(pbmc)=pbmc$seurat_clusters
-names(new.cluster.ids) <- levels(pbmc)
-pbmc <- RenameIdents(pbmc, new.cluster.ids)
-pbmc@meta.data$celltype<-Idents(pbmc)
-unique(pbmc$celltype)
-library(future)
-plan('multisession',workers=12)
-options(future.globals.maxSize=50000*1024^2)
-deg <- NULL
-deg.all <- NULL
-Idents(pbmc) <- pbmc$seurat_clusters
-for (j in 1:6){
-  file.path=list.files(dir[j],pattern = '\\.RData',full.names = T)
-  load(file.path)
-  Idents(pbmc) <- pbmc$seurat_clusters
-  clusternum=unique(pbmc$seurat_clusters)
-  for(i in 1:length(clusternum)){
-    temp <- subset(pbmc,idents=clusternum[i]) 
-    sum <- as.data.frame(table(temp$type1))
-  Idents(temp) <- temp$type1
-   if(length(unique(temp$type1)) == 2 & length(which(temp$type1 %in% 'OB'))>3 & length(which(temp$type1 %in% 'WT'))>3){
-    deg.temp <- FindMarkers(temp,ident.1 = 'OB',ident.2 = 'WT',logfc.threshold = 0.25)
-  #deg.temp <- deg.temp[deg.temp$p_val_adj<0.05,]
-  deg.temp$type <- ifelse(deg.temp$avg_log2FC>0,"OB","WT")
-  deg.temp$celltype <- clusternum[i]
-  deg.temp$gene <- rownames(deg.temp)
-  deg <- rbind(deg,deg.temp)
-    }
-  else{
-   next
-  }
-  
-  }
-  deg.all=rbind(deg.all, deg)
-  deg=NULL
-  
-}
-
-write.csv(deg.all,file='../basic_analysis/diffgene/diffgene_test.csv')
-deg <- read.csv("../basic_analysis/diffgene/diffgene_test.csv",row.names = 1)
-OB.gene=as.data.frame(table(OB$gene))
-OB <- deg.all[deg.all$type=="OB"&deg.all$p_val_adj<0.05&deg.all$avg_log2FC>0.25,]
-OB.deg <- as.data.frame(table(OB$gene))
-OB.deg <- OB.deg[order(OB.deg$Freq,decreasing = T),]
-OB.deg$rank <- paste0(1:length(rownames(OB.deg)))
-
-OB.deg$rank <- as.numeric(OB.deg$rank)
-OB.deg$text <- ifelse(OB.deg$rank<31,as.character(OB.deg$Var1),'')
-ggplot(OB.deg,aes(x=rank,y=Freq))+geom_point()+
-  theme_classic()+geom_label_repel(aes(label=text),
-                                   max.overlaps = 100)+
-  ylab("Number of cell types")
-ggsave("../basic_analysis/diffgene/diffgene_rank_OB.pdf",width = 6,height = 6)
-
-WT <- deg.all[deg.all$type=="WT"&deg.all$p_val_adj<0.05&deg.all$avg_log2FC<c(-0.25),]
-WT.deg <- as.data.frame(table(WT$gene))
-WT.deg <- WT.deg[order(WT.deg$Freq,decreasing = T),]
-WT.deg$rank <- paste0(1:length(rownames(WT.deg)))
-
-WT.deg$rank <- as.numeric(WT.deg$rank)
-WT.deg$text <- ifelse(WT.deg$rank<20,as.character(WT.deg$Var1),'')
-pdf("../basic_analysis/diffgene/diffgene_rank_WT.pdf",width = 6,height = 6)
-ggplot(WT.deg,aes(x=rank,y=Freq))+geom_point()+
-  theme_classic()+geom_label_repel(aes(label=text),max.overlaps = 100)+
-  ylab("Number of cell types")
-dev.off()
-
-
-
-
-
-
-###############
 library(openxlsx)
 library(Seurat)
 library(ggplot2)
@@ -108,6 +20,7 @@ celltype
 library(future)
 plan('multisession',workers=12)
 options(future.globals.maxSize=50000*1024^2)
+##create deg dataframe
 deg <- NULL
 for(i in 1:length(celltype)){
   temp <- subset(pbmc,idents=celltype[i])
@@ -125,7 +38,7 @@ for(i in 1:length(celltype)){
     next
   }
 }
-
+###绘制火山图
 for (i in 1:length(celltype)) {
 temp=deg[deg$celltype==celltype[i],]
 temp=temp[order(-abs(temp$avg_log2FC)),]
