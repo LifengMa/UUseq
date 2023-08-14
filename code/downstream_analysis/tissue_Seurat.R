@@ -80,7 +80,7 @@ plot2
 pbmc <- ScaleData(object =pbmc,features = hv.genes, vars.to.regress = c("percent.mt","nCount_RNA"))
 
 ##### runPCA
-pbmc <- RunPCA(object =pbmc, pc.genes = hv.genes, pcs.compute = 50, do.print = TRUE, 
+pbmc <- RunPCA(object =pbmc, features = hv.genes, pcs.compute = 50, do.print = TRUE, 
                pcs.print = 1:5, genes.print = 5)
 ElbowPlot(object =pbmc, ndims = 40)#1:25
 
